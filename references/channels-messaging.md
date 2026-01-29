@@ -89,6 +89,47 @@ When `selfChatMode: true`:
 
 Session key format: `agent:<agentId>:whatsapp:group:<jid>`
 
+### Policy Behavior Details (IMPORTANT)
+
+**Critical discovery:** The policy settings affect BOTH agent response AND message logging:
+
+| Policy Setting | Messages Logged? | Agent Responds? | Use Case |
+|----------------|------------------|-----------------|----------|
+| `groupPolicy: "open"` | Yes | Yes (on mention) | Active bot in groups |
+| `groupPolicy: "allowlist"` + groups configured | Yes | Yes (on mention) | Controlled group access |
+| `groupPolicy: "allowlist"` + empty/no groups | **NO** | No | Blocks everything |
+| `groupPolicy: "disabled"` | **NO** | No | Complete block |
+| `dmPolicy: "disabled"` | **NO** | No | Ignores DMs entirely |
+
+**Passive Monitoring Limitation:** There is NO built-in way to receive/log messages without the agent responding. The options are:
+- `open` = messages logged, but agent wakes up (uses tokens)
+- `allowlist` empty = messages NOT logged at all
+- `disabled` = messages ignored entirely
+
+**Workaround for passive monitoring:** See `references/baileys-direct-access.md` for direct Baileys access methods.
+
+### Mention Patterns
+
+Control what triggers the agent in groups via `agents.list[].groupChat.mentionPatterns`:
+
+```json5
+{
+  agents: {
+    list: [{
+      id: "main",
+      groupChat: {
+        mentionPatterns: [
+          "@?clawdbot",      // matches @clawdbot or clawdbot
+          "\\+?15555550123"  // matches phone number
+        ]
+      }
+    }]
+  }
+}
+```
+
+**Note:** Even with custom `mentionPatterns`, the canonical WhatsApp @-mention (tapping contact) triggers via `mentionedJids` and cannot be disabled.
+
 ### Acknowledgment Reactions
 
 ```json5
@@ -223,6 +264,22 @@ Credentials: `~/.clawdbot/credentials/whatsapp/<accountId>/creds.json`
 - Animated (TGS) and video (WEBM) skip processing
 - Cache at `~/.clawdbot/telegram/sticker-cache.json`
 - Enable sending: `actions.sticker: true`
+
+### Action Gating (Telegram-specific)
+
+Telegram supports disabling specific actions:
+
+```json5
+{
+  actions: {
+    reactions: true,
+    sendMessage: true,   // Set to false to prevent sending messages
+    deleteMessage: true
+  }
+}
+```
+
+**Note:** `actions.sendMessage: false` is Telegram-only. WhatsApp does NOT have this feature - it only has `actions.reactions`.
 
 ### Streaming (Draft Bubbles)
 

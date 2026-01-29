@@ -278,6 +278,62 @@ Then run: `moltbot channels login`
 }
 ```
 
+## Custom Scripts Location
+
+Custom scripts for operations not supported by Moltbot's API can be placed in the workspace scripts folder:
+
+```
+<workspace>/scripts/
+└── whatsapp/
+    ├── list-groups.mjs      # List all WhatsApp groups
+    ├── filter-groups.mjs    # Filter groups by keywords
+    └── passive-monitor.mjs  # Monitor messages passively
+```
+
+**Default location:** `~/clawd/scripts/whatsapp/` (or wherever `agents.defaults.workspace` points)
+
+These scripts use direct Baileys access for operations like:
+- Listing all WhatsApp groups (not available via Moltbot API)
+- Filtering groups by name/size
+- Passive message monitoring without agent response
+
+See `references/baileys-direct-access.md` for script documentation and available Baileys functions.
+
+## Known Limitations & Workarounds
+
+### WhatsApp Passive Monitoring
+
+**Problem:** No built-in way to receive/log WhatsApp messages without the agent responding.
+
+| Policy Setting | Messages Logged? | Agent Responds? |
+|----------------|------------------|-----------------|
+| `groupPolicy: "open"` | Yes | Yes (on mention) |
+| `groupPolicy: "allowlist"` (empty) | No | No |
+| `groupPolicy: "disabled"` | No | No |
+
+**Workaround:** Use direct Baileys access for passive monitoring. See `references/baileys-direct-access.md`.
+
+### WhatsApp Group Discovery
+
+**Problem:** `clawdbot directory groups list` only reads from config, not live WhatsApp data.
+
+**Workaround:** Use the Baileys scripts in the workspace:
+```bash
+# List all groups (briefly disconnects Moltbot)
+node ~/clawd/scripts/whatsapp/list-groups.mjs personal
+
+# Filter by keywords (uses cached data, no reconnect)
+node ~/clawd/scripts/whatsapp/filter-groups.mjs personal --cached --filter גן,בית\ ספר
+node ~/clawd/scripts/whatsapp/filter-groups.mjs personal --cached --filter work,עבודה
+node ~/clawd/scripts/whatsapp/filter-groups.mjs personal --cached --min-participants 50
+```
+
+See `references/baileys-direct-access.md` for full documentation.
+
+### Telegram vs WhatsApp Action Gating
+
+Telegram supports `actions.sendMessage: false` to prevent sending messages while still receiving. WhatsApp does NOT have this feature.
+
 ## Troubleshooting
 
 ### Run Diagnostics
@@ -317,6 +373,7 @@ Detailed documentation in `references/`:
 - **`skills-system.md`** - skills, ClawdHub
 - **`agent-architecture.md`** - agents, routing, sandboxing
 - **`memory-sessions.md`** - memory, session management
+- **`baileys-direct-access.md`** - Direct WhatsApp/Baileys access for advanced operations
 
 ### External Documentation
 
