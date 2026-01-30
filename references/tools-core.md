@@ -172,6 +172,18 @@ Structured multi-file edits for OpenAI/Codex models. Enable explicitly:
 
 Tool policy applies; `allow: ["exec"]` implicitly permits `apply_patch`.
 
+## Exec in Bot-Orchestrated Workflows
+
+The exec tool is a key component of **bot-orchestrated workflow skills** - where a skill teaches the bot to combine exec output with native tools like `message` or `poll`.
+
+**Pattern:** exec → parse output → act with native tools
+
+**Example:** A skill runs `node filter-groups.mjs --json`, parses the JSON array, then sends polls to the user via the `message` tool.
+
+See `references/skills-system.md` → "Bot-Orchestrated Workflow Skills" for the full pattern and best practices.
+
+---
+
 ## Critical Gotchas
 
 1. **Sandboxing off by default** - `host=sandbox` runs on gateway host without approvals if sandboxing disabled
